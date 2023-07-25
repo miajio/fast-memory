@@ -1,68 +1,46 @@
 package core_test
 
 import (
-	"encoding/hex"
 	"fmt"
 	"testing"
 
 	"github.com/miajio/fast-memory/core"
 )
 
-func TestAES(t *testing.T) {
-	key := "userismiajioboss"
-	val := "hello world test aes encryptor: 测试aes加密"
+func TestMd5(t *testing.T) {
+	val := "123456"
+	v := core.Encryptor.MD5(val)
+	fmt.Println("md5加密后值:", v)
+}
 
-	res := core.AESEncryptor.ECB([]byte(key), []byte(val))
+func TestSha1(t *testing.T) {
+	val := "123456"
+	v := core.Encryptor.Sha1(val)
+	fmt.Println("sha1加密后值:", v)
+}
 
-	fmt.Printf("ECB加密后值: %x\n", res)
+func TestSha256(t *testing.T) {
+	val := "123456"
+	v := core.Encryptor.Sha256(val)
+	fmt.Println("sha256加密后值:", v)
+}
 
-	msg := core.AESEncryptor.DECB([]byte(key), res)
-	fmt.Println("ECB解密后值:", string(msg))
+func TestSha512(t *testing.T) {
+	val := "123456"
+	v := core.Encryptor.Sha512(val)
+	fmt.Println("sha512加密后值:", v)
+}
 
-	ress, err := core.AESEncryptor.CBC(key, val)
-	if err != nil {
-		t.Fatalf("CBC加密失败:%v", err)
-	}
-	fmt.Println("CBC加密后值:", ress)
+func TestHmac(t *testing.T) {
+	key := "user"
+	val := "123456"
+	v := core.Encryptor.Hmac(key, val)
+	fmt.Println("hmac加密后值:", v)
+}
 
-	msgs, err := core.AESEncryptor.DCBC(key, ress)
-	if err != nil {
-		t.Fatalf("CBC加密失败:%v", err)
-	}
-	fmt.Println("CBC解密后值:", string(msgs))
-
-	res, err = core.AESEncryptor.CRT([]byte(key), []byte(val))
-	if err != nil {
-		t.Fatalf("CRT加密失败:%v", err)
-	}
-	fmt.Printf("CRT加密后值: %x\n", res)
-	tval := fmt.Sprintf("%x", res)
-	res, _ = hex.DecodeString(tval)
-	msg, err = core.AESEncryptor.CRT([]byte(key), res)
-	if err != nil {
-		t.Fatalf("CRT解密失败:%v", err)
-	}
-	fmt.Println("CRT解密后值:", string(msg))
-
-	res, err = core.AESEncryptor.CFB([]byte(key), []byte(val))
-	if err != nil {
-		t.Fatalf("CFB加密失败:%v", err)
-	}
-	fmt.Printf("CFB加密后值: %x\n", res)
-	msg, err = core.AESEncryptor.DCFB([]byte(key), res)
-	if err != nil {
-		t.Fatalf("DCFB解密失败:%v", err)
-	}
-	fmt.Println("DCFB解密后值:", string(msg))
-
-	res, err = core.AESEncryptor.OFB([]byte(key), []byte(val))
-	if err != nil {
-		t.Fatalf("OFB加密失败:%v", err)
-	}
-	fmt.Printf("OFB加密后值: %x\n", res)
-	msg, err = core.AESEncryptor.DOFB([]byte(key), res)
-	if err != nil {
-		t.Fatalf("DOFB解密失败:%v", err)
-	}
-	fmt.Println("DOFB解密后值:", string(msg))
+func TestHmacSha256(t *testing.T) {
+	key := "user"
+	val := "123456"
+	v := core.Encryptor.HmacSha256(key, val)
+	fmt.Println("hmacsha256加密后值:", v)
 }

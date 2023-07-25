@@ -5,7 +5,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"io"
 )
@@ -13,14 +12,12 @@ import (
 type AESEncryptorImpl struct{}
 
 type AESEncryptorInterface interface {
-	ECB(key, val []byte) []byte       // aes encrypt electronic codebook book (ECB)
-	DECB(key, val []byte) []byte      // aes decrypt electronic codebook book (ECB)
-	ECBGenerateKey(key []byte) []byte // aes electronic codebook book generte key
+	ECB(key, val []byte) ([]byte, error)  // aes encrypt electronic codebook book (ECB)
+	DECB(key, val []byte) ([]byte, error) // aes decrypt electronic codebook book (ECB)
+	ECBGenerateKey(key []byte) []byte     // aes electronic codebook book generte key
 
-	CBC(key, val string) (string, error)           // aes encrypt cipher block chaining (CBC)
-	DCBC(key, val string) (string, error)          // aes decrypt cipher block chaining (DCBC)
-	PKCS7Padding(val []byte, blockSize int) []byte // pkcs7 padding
-	PKCS7UnPadding(val []byte) []byte              // pkcs7 unpadding
+	CBC(key, val []byte) ([]byte, error)  // aes encrypt cipher block chaining (CBC)
+	DCBC(key, val []byte) ([]byte, error) // aes decrypt cipher block chaining (DCBC)
 
 	CRT(key, val []byte) ([]byte, error) // aes encrypt or decrypt counter (CTR)
 
@@ -29,14 +26,18 @@ type AESEncryptorInterface interface {
 
 	OFB(key, val []byte) ([]byte, error)  // aes encrypt output FeedBack (OFB)
 	DOFB(key, val []byte) ([]byte, error) // aes decrypt output FeedBack (OFB)
+
 }
 
 var AESEncryptor AESEncryptorInterface = (*AESEncryptorImpl)(nil)
 
 // ECB
 // aes encrypt electronic codebook book
-func (*AESEncryptorImpl) ECB(key, val []byte) []byte {
-	cipher, _ := aes.NewCipher(AESEncryptor.ECBGenerateKey(key))
+func (*AESEncryptorImpl) ECB(key, val []byte) ([]byte, error) {
+	cipher, err := aes.NewCipher(AESEncryptor.ECBGenerateKey(key))
+	if err != nil {
+		return nil, err
+	}
 	l := (len(val) + aes.BlockSize) / aes.BlockSize
 	plain := make([]byte, l*aes.BlockSize)
 	copy(plain, val)
@@ -48,13 +49,16 @@ func (*AESEncryptorImpl) ECB(key, val []byte) []byte {
 	for bs, be := 0, cipher.BlockSize(); bs <= len(val); bs, be = bs+cipher.BlockSize(), be+cipher.BlockSize() {
 		cipher.Encrypt(res[bs:be], plain[bs:be])
 	}
-	return res
+	return res, nil
 }
 
 // DECB
 // aes decrypt electronic codebook book
-func (*AESEncryptorImpl) DECB(key, val []byte) []byte {
-	cipher, _ := aes.NewCipher(AESEncryptor.ECBGenerateKey(key))
+func (*AESEncryptorImpl) DECB(key, val []byte) ([]byte, error) {
+	cipher, err := aes.NewCipher(AESEncryptor.ECBGenerateKey(key))
+	if err != nil {
+		return nil, err
+	}
 	res := make([]byte, len(val))
 	for bs, be := 0, cipher.BlockSize(); bs < len(val); bs, be = bs+cipher.BlockSize(), be+cipher.BlockSize() {
 		cipher.Decrypt(res[bs:be], val[bs:be])
@@ -63,7 +67,7 @@ func (*AESEncryptorImpl) DECB(key, val []byte) []byte {
 	if len(res) > 0 {
 		trim = len(res) - int(res[len(res)-1])
 	}
-	return res[:trim]
+	return res[:trim], nil
 }
 
 // ECBGenerateKey
@@ -82,57 +86,36 @@ func (*AESEncryptorImpl) ECBGenerateKey(key []byte) []byte {
 // CBC
 // aes encrypt cipher block chaining
 // the key length must be 16,24,32
-func (*AESEncryptorImpl) CBC(key, val string) (string, error) {
-	kb, vb := []byte(key), []byte(val)
-
-	block, err := aes.NewCipher(kb)
+func (*AESEncryptorImpl) CBC(key, val []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	bs := block.BlockSize()
 
-	vb = AESEncryptor.PKCS7Padding(vb, bs)
-	bm := cipher.NewCBCEncrypter(block, kb[:bs])
+	val = PKCS.Padding(val, bs)
+	bm := cipher.NewCBCEncrypter(block, key[:bs])
 
-	cryted := make([]byte, len(vb))
-	bm.CryptBlocks(cryted, vb)
-	return base64.StdEncoding.EncodeToString(cryted), nil
+	res := make([]byte, len(val))
+	bm.CryptBlocks(res, val)
+	return res, nil
 }
 
 // DCBC
 // aes decrypt cipher block chaining
 // the key length must be 16,24,32
-func (*AESEncryptorImpl) DCBC(key, val string) (string, error) {
-	vb, _ := base64.StdEncoding.DecodeString(val)
-	kb := []byte(key)
-
-	block, err := aes.NewCipher(kb)
+func (*AESEncryptorImpl) DCBC(key, val []byte) ([]byte, error) {
+	block, err := aes.NewCipher(key)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	bs := block.BlockSize()
-	bm := cipher.NewCBCDecrypter(block, kb[:bs])
-	om := make([]byte, len(vb))
-	bm.CryptBlocks(om, vb)
-	om = AESEncryptor.PKCS7UnPadding(om)
-	return string(om), nil
-}
-
-// PKCS7Padding
-// pkcs7 padding
-func (*AESEncryptorImpl) PKCS7Padding(val []byte, blockSize int) []byte {
-	pd := blockSize - len(val)%blockSize
-	pdt := bytes.Repeat([]byte{byte(pd)}, pd)
-	return append(val, pdt...)
-}
-
-// PKCS7UnPadding
-// pkcs7 unpadding
-func (*AESEncryptorImpl) PKCS7UnPadding(val []byte) []byte {
-	l := len(val)
-	upd := int(val[l-1])
-	return val[:(l - upd)]
+	bm := cipher.NewCBCDecrypter(block, key[:bs])
+	res := make([]byte, len(val))
+	bm.CryptBlocks(res, val)
+	res = PKCS.UnPadding(res)
+	return res, nil
 }
 
 // CRT
@@ -190,7 +173,7 @@ func (*AESEncryptorImpl) DCFB(key, val []byte) ([]byte, error) {
 // OFB
 // aes encrypt output FeedBack
 func (*AESEncryptorImpl) OFB(key, val []byte) ([]byte, error) {
-	val = AESEncryptor.PKCS7Padding(val, aes.BlockSize)
+	val = PKCS.Padding(val, aes.BlockSize)
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
@@ -223,6 +206,6 @@ func (*AESEncryptorImpl) DOFB(key, val []byte) ([]byte, error) {
 	res := make([]byte, len(val))
 	md := cipher.NewOFB(block, iv)
 	md.XORKeyStream(res, val)
-	res = AESEncryptor.PKCS7UnPadding(res)
+	res = PKCS.UnPadding(res)
 	return res, nil
 }
