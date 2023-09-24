@@ -1,4 +1,4 @@
-package core
+package lib
 
 import (
 	"bytes"
@@ -9,8 +9,10 @@ import (
 	"io"
 )
 
+// DESEncryptorImpl
 type DESEncryptorImpl struct{}
 
+// DESEncryptorInterface
 type DESEncryptorInterface interface {
 	ECB(key, val []byte) ([]byte, error)  // des encrypt electronic codebook book (ECB)
 	DECB(key, val []byte) ([]byte, error) // des decrypt electronic codebook book (ECB)
@@ -27,6 +29,7 @@ type DESEncryptorInterface interface {
 	DOFB(key, val []byte) ([]byte, error) // des decrypt output FeedBack (OFB)
 }
 
+// DESEncryptor
 var DESEncryptor DESEncryptorInterface = (*DESEncryptorImpl)(nil)
 
 // ECB

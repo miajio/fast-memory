@@ -1,4 +1,4 @@
-package core_test
+package lib_test
 
 import (
 	"encoding/hex"
@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/miajio/fast-memory/core"
+	"github.com/miajio/fast-memory/lib"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 )
 
 func TestECB(t *testing.T) {
-	res, err := core.AESEncryptor.ECB([]byte(key), []byte(val))
+	res, err := lib.AESEncryptor.ECB([]byte(key), []byte(val))
 	if err != nil {
 		t.Fatalf("ECB加密失败:%v", err)
 	}
@@ -26,7 +26,7 @@ func TestECB(t *testing.T) {
 	fmt.Println("ECB加密后值:", resStr)
 
 	res, _ = hex.DecodeString(resStr)
-	msg, err := core.AESEncryptor.DECB([]byte(key), res)
+	msg, err := lib.AESEncryptor.DECB([]byte(key), res)
 	if err != nil {
 		t.Fatalf("ECB解密失败:%v", err)
 	}
@@ -34,7 +34,7 @@ func TestECB(t *testing.T) {
 }
 
 func TestCBC(t *testing.T) {
-	res, err := core.AESEncryptor.CBC([]byte(key), []byte(val))
+	res, err := lib.AESEncryptor.CBC([]byte(key), []byte(val))
 	if err != nil {
 		t.Fatalf("CBC加密失败:%v", err)
 	}
@@ -42,7 +42,7 @@ func TestCBC(t *testing.T) {
 	fmt.Println("CBC加密后值:", resStr)
 
 	res, _ = hex.DecodeString(resStr)
-	msgs, err := core.AESEncryptor.DCBC([]byte(key), res)
+	msgs, err := lib.AESEncryptor.DCBC([]byte(key), res)
 	if err != nil {
 		t.Fatalf("CBC解密失败:%v", err)
 	}
@@ -50,7 +50,7 @@ func TestCBC(t *testing.T) {
 }
 
 func TestCRT(t *testing.T) {
-	res, err := core.AESEncryptor.CRT([]byte(key), []byte(val))
+	res, err := lib.AESEncryptor.CRT([]byte(key), []byte(val))
 	if err != nil {
 		t.Fatalf("CRT加密失败:%v", err)
 	}
@@ -59,7 +59,7 @@ func TestCRT(t *testing.T) {
 	fmt.Println("CRT加密后值:", resStr)
 
 	res, _ = hex.DecodeString(resStr)
-	msg, err := core.AESEncryptor.CRT([]byte(key), res)
+	msg, err := lib.AESEncryptor.CRT([]byte(key), res)
 	if err != nil {
 		t.Fatalf("CRT解密失败:%v", err)
 	}
@@ -67,7 +67,7 @@ func TestCRT(t *testing.T) {
 }
 
 func TestCFB(t *testing.T) {
-	res, err := core.AESEncryptor.CFB([]byte(key), []byte(val))
+	res, err := lib.AESEncryptor.CFB([]byte(key), []byte(val))
 	if err != nil {
 		t.Fatalf("CFB加密失败:%v", err)
 	}
@@ -76,7 +76,7 @@ func TestCFB(t *testing.T) {
 	fmt.Println("CFB加密后值:", resStr)
 
 	res, _ = hex.DecodeString(resStr)
-	msg, err := core.AESEncryptor.DCFB([]byte(key), res)
+	msg, err := lib.AESEncryptor.DCFB([]byte(key), res)
 	if err != nil {
 		t.Fatalf("DCFB解密失败:%v", err)
 	}
@@ -84,7 +84,7 @@ func TestCFB(t *testing.T) {
 }
 
 func TestOFB(t *testing.T) {
-	res, err := core.AESEncryptor.OFB([]byte(key), []byte(val))
+	res, err := lib.AESEncryptor.OFB([]byte(key), []byte(val))
 	if err != nil {
 		t.Fatalf("OFB加密失败:%v", err)
 	}
@@ -93,7 +93,7 @@ func TestOFB(t *testing.T) {
 	fmt.Println("OFB加密后值:", resStr)
 
 	res, _ = hex.DecodeString(resStr)
-	msg, err := core.AESEncryptor.DOFB([]byte(key), res)
+	msg, err := lib.AESEncryptor.DOFB([]byte(key), res)
 	if err != nil {
 		t.Fatalf("DOFB解密失败:%v", err)
 	}
@@ -101,11 +101,11 @@ func TestOFB(t *testing.T) {
 }
 
 func TestColor(t *testing.T) {
-	res, _ := core.AESEncryptor.CBC([]byte(key), []byte(val))
+	res, _ := lib.AESEncryptor.CBC([]byte(key), []byte(val))
 	msg := hex.EncodeToString(res)
 	fmt.Println(msg)
 
-	rgbs := core.HexToColor(res)
+	rgbs := lib.HexToColor(res)
 
 	w := 10
 	h := 0
@@ -133,7 +133,7 @@ func TestColor(t *testing.T) {
 
 		fmt.Println("RGB:", rgbs[i])
 
-		r, g, b, err := core.ColorToRGB(rgbs[i])
+		r, g, b, err := lib.ColorToRGB(rgbs[i])
 		if err != nil {
 			t.Fatalf("color to rgb fail:%v", err)
 		}

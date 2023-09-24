@@ -1,4 +1,4 @@
-package core
+package lib
 
 import (
 	"bytes"
@@ -9,8 +9,10 @@ import (
 	"io"
 )
 
+// AESEncryptorImpl
 type AESEncryptorImpl struct{}
 
+// AESEncryptorInterface
 type AESEncryptorInterface interface {
 	ECB(key, val []byte) ([]byte, error)  // aes encrypt electronic codebook book (ECB)
 	DECB(key, val []byte) ([]byte, error) // aes decrypt electronic codebook book (ECB)
@@ -29,6 +31,7 @@ type AESEncryptorInterface interface {
 
 }
 
+// AESEncryptor
 var AESEncryptor AESEncryptorInterface = (*AESEncryptorImpl)(nil)
 
 // ECB
